@@ -1,0 +1,467 @@
+
+<html>
+    <head>
+    <link href='https://fonts.googleapis.com/css?family=Luckiest Guy' rel='stylesheet'>
+	<link rel="stylesheet" type="text/css" href="styles.css">
+    <title>GAME</title>
+    </head>
+    <body>
+    
+    <div class="dropdown">
+  <button class="dropbtn"><b>More</b></button>
+  <div class="dropdown-content">
+    <a href="/game-index">More Games</a>
+    <a href="/action_page.php">Report Bugs/Suggestions</a>
+  </div>
+</div>
+        <h1 class="myClickDisabledElm">GAME DEMO</h1>
+        <button id="menubutton" class="myClickDisabledElm"onclick="openMenu()">Main MENU</button>
+        <canvas id="ctx" width="800" height="500" style="border:3px solid #000000;"></canvas>
+    <div id="popup_bg3">
+    <div id="popup_main_div3">
+    <p id="javascript_magic3">
+                Main Menu
+    </p>
+    <div>
+        <p><button id="start" onclick="startNewGame()">NEW GAME</button></p>
+        <p><button id="score2" onclick="submitScore()">Challenges N/A</button></p>
+        <p><button id="pause" onclick="openMenu2()"> Achievements W/P </button></p>
+    </div>
+        <div>     
+            <div id="close_popup_div3" title="Close Menu" onclick="closepopmenu()">
+                <p id= "close_popup_divp3">
+                    X
+                </p>
+            </div>
+        </div>
+    </div>
+		</div>
+	<div id="popup_bg2">
+    <div id="popup_main_div2">
+    <p id="javascript_magic2">
+                Character Stats
+    </p>
+    <div>
+        <img id= "player" src="img/playermodel.png">
+		<div id="pbc">
+		<div id="pb"></div>
+		<div id="pbt"></div>
+		<h2>Level Progression</h2>
+		<p id= "filltext">This page keeps track of skills and level progression.</p>
+</div>
+    </div>
+        <div>
+                  
+            <div id="close_popup_div2" title="Close Stats" onclick="closepopmenu2()">
+                <p id= "close_popup_divp2">
+                    X
+                </p>
+            </div>
+        </div>
+    </div>
+	</div>
+    <script src="js/Entities.js"></script>
+    <script src="js/Inventory.js"></script>
+    <script> 
+
+    var ctx = document.getElementById("ctx").getContext("2d"); 
+    ctx.font = '30px Luckiest Guy';
+    //graphical settings for images 
+    ctx.mozImageSmoothingEnabled = false;	
+    ctx.msImageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false;
+	var experience = 0;
+    var level = 0;
+    var pbt = document.getElementById("pbt");
+    var pb = document.getElementById("pb");
+    var TILE_SIZE = 32;	
+    var WIDTH = 800;
+    var HEIGHT = 500;
+    var timeWhenGameStarted = Date.now();	//return time in ms
+    var shieldHP = 0;
+    var frameCount = 0;
+    var enemyNum = 0; 
+    var lives = 3;
+    var score = 0;
+    var atkSpd = 1;
+    var paused = false;
+    var hurtSound= new Audio("https://freesound.org/data/previews/44/44429_468340-lq.mp3");
+    var gameMusic= new Audio("https://www.dl-sounds.com/wp-content/uploads/edd/2017/12/8-bit-Dancer2-long.mp3");
+    var menuMusic= new Audio("music/Game-Menu.mp3");
+    var popupdiv3= document.getElementById("popup_bg3");
+    var popupdiv2= document.getElementById("popup_bg2");
+	var popupdivST= document.getElementById("popup_bgST");
+    var popupdivA2= document.getElementById("popup_bgA2");
+    var highscore = 0;
+    var waveNum= 1;
+    var medkitNum =0;
+	var potionNum = 0;
+    var nukeNum =0;
+	var playerSpeed = 10;
+	var maxPlayerHP = 20;
+    var ammo= 50;
+    var gameState = false;
+	var enemyHP = 5;
+	var MAX_LEVEL = 50;
+	var numPressed = 0;
+    var Img = {};
+    Img.player = new Image();
+    Img.player.src = "img/player.png";
+    Img.bat = new Image();
+    Img.bat.src = 'img/bat.png';
+    Img.bee = new Image();
+    Img.bee.src = 'img/bee.png';
+    Img.bullet = new Image();
+    Img.bullet.src = 'img/bullet.png';
+    Img.upgrade1 = new Image();
+    Img.upgrade1.src = 'img/upgrade1.png';
+    Img.upgrade2 = new Image();
+    Img.upgrade2.src = 'img/upgrade2alt.png';
+    Img.screen = new Image();
+    Img.screen.src = 'img/screen.png';
+    Img.upgrade3 = new Image();
+    Img.upgrade3.src = 'img/upgrade3.png';
+	Img.zombie = new Image();
+	Img.zombie.src = 'img/zombie.png';
+	Img.potion1 = new Image();
+	Img.potion1.src = 'img/potion1.png';
+    
+//This set of functions opens all the menus in the game       
+       
+function openMenu(){
+    popupdiv3.style.display="block";
+    paused = true;
+}
+        
+function closepopmenu(){
+    popupdiv3.style.display="none";
+    paused = !paused;
+} 
+        
+function openMenu2(){
+    popupdiv2.style.display="block";
+	paused = true;
+    
+}
+        
+function closepopmenu2(){
+    popupdiv2.style.display="none";
+	paused = !paused;
+    
+} 
+     
+        
+        
+        
+        
+        
+        
+        
+function waveCounter(){
+    if(paused){
+        return;
+    }else{
+        waveNum++;
+        enemyHP += 3; 
+        
+    }
+    
+}
+function downloadFile(){
+    window.open("http://www.mediafire.com/folder/48p3tttf3thzl/game");
+}
+		
+
+        
+
+
+
+    testCollisionRectRect = function(rect1,rect2){
+        return rect1.x <= rect2.x+rect2.width 
+            && rect2.x <= rect1.x+rect1.width
+            && rect1.y <= rect2.y + rect2.height
+            && rect2.y <= rect1.y + rect1.height;
+    }
+
+    document.onmousedown = function(mouse){
+        if(mouse.which === 1)
+            player.pressingMouseLeft = true;
+        else
+            player.pressingMouseRight = true;
+            
+    }
+    document.onmouseup = function(mouse){
+        if(mouse.which === 1)
+            player.pressingMouseLeft = false;
+        else
+            player.pressingMouseRight = false;
+    }
+    document.oncontextmenu = function(mouse){
+        mouse.preventDefault();
+    }
+
+    document.onmousemove = function(mouse){
+        var mouseX = mouse.clientX - document.getElementById('ctx').getBoundingClientRect().left;
+        var mouseY = mouse.clientY - document.getElementById('ctx').getBoundingClientRect().top;
+
+        mouseX -= WIDTH/2;
+        mouseY -= HEIGHT/2;
+
+        player.aimAngle = Math.atan2(mouseY,mouseX) / Math.PI * 180;
+    }
+
+    document.onkeydown = function(event){
+        if(event.keyCode === 68 || event.keyCode === 39)	//d
+            player.pressingRight = true;
+        else if(event.keyCode === 83 || event.keyCode === 40)	//s
+            player.pressingDown = true;
+        else if(event.keyCode === 65 || event.keyCode === 37)  //a
+            player.pressingLeft = true;
+        else if(event.keyCode === 87 || event.keyCode === 38) // w
+            player.pressingUp = true;
+        else if(event.keyCode === 49 || event.keyCode === 50 || event.keyCode === 80 || event.keyCode === 51 || event.keyCode === 69) //1 , 2, 3 and p
+            checkUse();
+    }
+    
+
+    document.onkeyup = function(event){
+        if(event.keyCode === 68 || event.keyCode === 39)	//d
+            player.pressingRight = false;
+        else if(event.keyCode === 83 || event.keyCode === 40)	//s
+            player.pressingDown = false;
+        else if(event.keyCode === 65 || event.keyCode === 37) //a
+            player.pressingLeft = false;
+        else if(event.keyCode === 87 || event.keyCode === 38) // w
+            player.pressingUp = false;
+    }
+    function checkUse(){
+        if(event.keyCode === 49){
+            if(medkitNum == 0){
+                null;
+            }else{
+                medkitNum--;
+				experience +=5;
+                player.hp = maxPlayerHP;
+                
+            }
+            
+        }else if(event.keyCode === 50){
+            if(nukeNum == 0){
+                null;
+            }else{
+                nukeNum--;
+				experience += 5;
+                for(var angle = 0; angle < 360; angle++){
+                    Bullet.generate(player,angle);
+                }
+            }
+        }else if(event.keyCode === 80){
+            paused= !paused;
+		}else if(event.keyCode === 51){
+			if(potionNum == 0){
+				null;
+			}else{
+				potionNum--;
+				experience += 5;
+				maxPlayerHP += 5;
+			}
+		}else if(event.keyCode === 69){
+			if(numPressed == 0){
+				openMenu2();
+				numPressed++;
+			}else{
+				closepopmenu2();
+				numPressed--;
+			}
+			
+		}else{
+            gameState = true;
+        }
+    }
+    update = function(){
+        if(paused){
+            ctx.fillText('Paused',350,HEIGHT/2);
+            return;
+        }
+        ctx.clearRect(0,0,WIDTH,HEIGHT);
+        Maps.current.draw();
+        frameCount++;
+        score++;
+
+
+        Bullet.update();
+        Upgrade.update();
+        Enemy.update();
+
+        player.update();
+        updateVal();
+    
+        ctx.fillText(player.hp + " Health",0,30);
+        ctx.fillText('Score: ' + score,600,30);
+        ctx.fillText('Lives Left: ' + lives, 600, 490);
+        ctx.fillText('Wave: ' + waveNum,350,30);
+        if(medkitNum >0){
+            ctx.fillText('Med-Kits: ' + medkitNum, 0, 100);
+        }
+        if(nukeNum >0){
+            ctx.fillText('Nukes: ' + nukeNum, 0, 150);
+        }
+        if(shieldHP>0){
+            ctx.fillText('Shield: ' + shieldHP, 0, 490);
+        }
+		if(potionNum >0){
+			ctx.fillText('Potions: ' + potionNum, 0, 200);
+		}
+    }
+
+    startNewGame = function(){
+        player.hp = maxPlayerHP;
+        timeWhenGameStarted = Date.now();
+        frameCount = 0;
+        score = 0;
+        waveNum= 1;
+        nukeNum = 0;
+		potionNum = 0;
+        medkitNum = 0;
+        ammo= 50;
+        Enemy.list = {};
+        Upgrade.list = {};
+        Bullet.list = {};
+        Enemy.randomlyGenerate();
+        Enemy.randomlyGenerate();
+        Enemy.randomlyGenerate();
+        gameMusic.play();
+        gameMusic.loop = true;
+        setInterval('waveCounter()', 20000); 
+    }
+    
+    startNewGame2 = function(){
+        if(lives == 0){
+            location.reload();
+        }else{
+        lives--;
+        hurtSound.play();
+        player.hp = maxPlayerHP;
+        timeWhenGameStarted = Date.now();
+        frameCount = 0;
+        //score = 0;
+        waveNum= 1;
+        nukeNum = 0;
+        medkitNum = 0;
+		potionNum = 0;
+        ammo= 50;
+        Enemy.list = {};
+        Upgrade.list = {};
+        Bullet.list = {};
+        Enemy.randomlyGenerate();
+        Enemy.randomlyGenerate();
+        Enemy.randomlyGenerate();
+        gameMusic.play();
+        gameMusic.loop = true;
+        player.x = 0;
+        self.x = 0;
+        player.y = 0;
+        self.y = 0;
+        setInterval('waveCounter()', 200000); 
+        }
+    }
+
+    Maps = function(id,imgSrc,grid){
+        var self = {
+            id:id,
+            image:new Image(),
+            width:grid[0].length * TILE_SIZE,
+            height:grid.length * TILE_SIZE,
+            grid:grid,
+        }
+        self.image.src = imgSrc;
+
+        self.isPositionWall = function(pt){
+            var gridX = Math.floor(pt.x / TILE_SIZE);
+            var gridY = Math.floor(pt.y / TILE_SIZE);
+            if(gridX < 0 || gridX >= self.grid[0].length)
+                return true;
+            if(gridY < 0 || gridY >= self.grid.length)
+                return true;
+            return self.grid[gridY][gridX];
+        }
+
+        self.draw = function(){
+            var x = WIDTH/2 - player.x;
+            var y = HEIGHT/2 - player.y;
+            ctx.drawImage(self.image,0,0,self.image.width,self.image.height,x,y,self.image.width*2,self.image.height*2);
+        }
+        return self;
+    }
+
+    var array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 502, 502, 502, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 502, 502, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    var array2D = [];
+    for(var i = 0 ; i < 40; i++){
+        array2D[i] = [];
+        for(var j = 0 ; j < 40; j++){
+            array2D[i][j] = array[i * 40 + j];
+        }
+    }
+
+    Maps.current = Maps('field','img/testmap.png',array2D); 
+
+    function mouseClicked(e){
+        setTimeout('loadGame()', 2000);
+    }
+    
+   
+    
+    function loadGame(){
+        menuMusic.pause();
+        gameState = true;
+        player = Player();
+        playerInventory = Inventory();
+        startNewGame();
+        setInterval(update, 40); //25 frames per second 
+        if(gameState){
+            document.removeEventListener('click', mouseClicked);
+        }
+        
+    }
+    window.onload = function(){
+        ctx.drawImage(Img.screen, 0,0);
+        document.addEventListener('click', mouseClicked, false);
+        menuMusic.play();
+        menuMusic.loop= true;
+    }
+	    pb.style.width = experience+"%";
+    //pbt.innerHTML = testvalue+"%";
+function updateVal(){
+    if(experience != 100){
+		//experience++;
+        updateText();
+		
+    }else{
+        if(level != MAX_LEVEL){
+          level++;
+          lives += 3;
+          experience = 0;  
+        }else{
+           experience = 100;
+        }
+        
+    }
+    
+}
+function updateText(){
+    pb.style.width = experience+"%";
+    if(level == MAX_LEVEL && experience == 100){
+       pbt.innerHTML = "MAX LEVEL"; 
+    }else{
+       pbt.innerHTML = level; 
+    }
+       
+}
+    </script>
+
+    
+    
+    </body>
+
+</html>
